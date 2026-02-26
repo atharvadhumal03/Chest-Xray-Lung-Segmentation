@@ -1,0 +1,7 @@
+# datasets
+data.zip
+MetaData.csv
+Chest-X-Ray/
+
+# checkpoints/miscallaneous
+.DS_Store

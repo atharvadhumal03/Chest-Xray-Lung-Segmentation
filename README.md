@@ -1,0 +1,1 @@
+## U-Net based binary segmentation of lungs from chest X-rays using PyTorch. Trained on Montgomery + Shenzhen dataset (704 images).

@@ -5,3 +5,4 @@ Chest-X-Ray/
 
 # checkpoints/miscallaneous
 .DS_Store
+*.pyc

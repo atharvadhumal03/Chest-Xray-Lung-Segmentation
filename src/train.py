@@ -12,6 +12,7 @@ from tqdm import tqdm
 from glob import glob
 from model import UNet
 import torch.optim as optim
+from metrics import dice_loss
 from dataset import split_datasets
 from torch.utils.data import DataLoader
 
@@ -24,23 +25,6 @@ parser.add_argument('--output_dir', type=str, default='../outputs')
 parser.add_argument('--epochs', type=int, default=50)
 parser.add_argument('--batch_size', type=int, default=16)
 args = parser.parse_args()
-
-# =========================================================================================================================================
-# Loss Function - Dice Loss
-# =========================================================================================================================================
-def dice_loss(predictions, targets, smooth=1e-6):
-    # Apply sigmoid to convert logits to 0-1
-    predictions = torch.sigmoid(predictions)
-    
-    # Flatten both tensors
-    predictions = predictions.view(-1)
-    targets = targets.view(-1)
-    
-    # Compute intersection and dice score
-    intersection = (predictions * targets).sum()
-    dice_score = (2 * intersection + smooth) / (predictions.sum() + targets.sum() + smooth)
-    
-    return 1 - dice_score
 
 # =========================================================================================================================================
 # Hyperparameters

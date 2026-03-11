@@ -7,12 +7,23 @@ import sys
 sys.path.append('../src')
 
 import torch
+import argparse
 from tqdm import tqdm
 from glob import glob
 from model import UNet
 import torch.optim as optim
 from dataset import split_datasets
 from torch.utils.data import DataLoader
+
+# =========================================================================================================================================
+# argparse - handling file paths
+# =========================================================================================================================================
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', type=str, default='../Chest-X-Ray')
+parser.add_argument('--output_dir', type=str, default='../outputs')
+parser.add_argument('--epochs', type=int, default=50)
+parser.add_argument('--batch_size', type=int, default=16)
+args = parser.parse_args()
 
 # =========================================================================================================================================
 # Loss Function - Dice Loss
@@ -32,23 +43,16 @@ def dice_loss(predictions, targets, smooth=1e-6):
     return 1 - dice_score
 
 # =========================================================================================================================================
-# Intialize model
-# =========================================================================================================================================
-model = UNet(in_channels=1, out_channels=1)
-
-# =========================================================================================================================================
 # Hyperparameters
 # =========================================================================================================================================
 LEARNING_RATE = 1e-4
-BATCH_SIZE = 16
-EPOCHS = 1
+BATCH_SIZE = args.batch_size
+EPOCHS = args.epochs
 DEVICE = None
 
 # =========================================================================================================================================
 # Intializing set-up
 # =========================================================================================================================================
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
 if torch.cuda.is_available():
     DEVICE = 'cuda'
 elif torch.backends.mps.is_available():
@@ -57,13 +61,17 @@ else:
     DEVICE = 'cpu'
 
 print(f"Using device: {DEVICE}\n")
+
+model = UNet(in_channels=1, out_channels=1)
 model = model.to(DEVICE)
+
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 # =========================================================================================================================================
 # Loading data
 # =========================================================================================================================================
-DATA_PATH_IMG = "../Chest-X-Ray/image"
-DATA_PATH_MSK = "../Chest-X-Ray/mask"
+DATA_PATH_IMG = os.path.join(args.data_dir, 'image')
+DATA_PATH_MSK = os.path.join(args.data_dir, 'mask')
 
 image_paths = sorted(glob(os.path.join(DATA_PATH_IMG, '[0-9]*')))
 mask_paths = sorted(glob(os.path.join(DATA_PATH_MSK, '[0-9]*')))
@@ -144,7 +152,7 @@ if __name__ == "__main__":
             # Save best model
             if val_dice < best_val_dice:
                 best_val_dice = val_dice
-                torch.save(model.state_dict(), '../outputs/checkpoints/best_model.pth')
+                torch.save(model.state_dict(), os.path.join(args.output_dir, 'checkpoints', 'best_model.pth'))
                 print(f"Saved best model (Dice: {val_dice:.4f})")
 
             # Save checkpoint every 10 epochs
@@ -154,7 +162,7 @@ if __name__ == "__main__":
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'val_dice': val_dice,
-                }, f'../outputs/checkpoints/checkpoint_epoch{epoch+1}.pth')
+                }, os.path.join(args.output_dir, 'checkpoints', f'checkpoint_epoch{epoch+1}.pth'))
                 print(f"Saved checkpoint at epoch {epoch+1}")
         
     print("\n" + "="*50)

@@ -6,3 +6,9 @@ Chest-X-Ray/
 # checkpoints/miscallaneous
 .DS_Store
 *.pyc
+
+# Model weights
+outputs/checkpoints/*.pth
+
+# Python cache
+__pycache__/
